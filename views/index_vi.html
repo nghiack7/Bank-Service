@@ -1,37 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loan Calculator</title>
+    <title>Tính Lãi Suất </title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
     <div class="container">
-        <h1 class="mt-5">Loan Calculator</h1>
+        <h1 class="mt-5">Tính Lãi Suất Vay Dư Nợ Giảm Dần</h1>
         <form id="loan-form" class="mt-4">
-            <div class="form-group">
+            <!-- <div class="form-group">
                 <label for="user_id">User ID:</label>
                 <input type="text" class="form-control" id="user_id" name="user_id" required>
-            </div>
+            </div> -->
             <div class="form-group">
-                <label for="amount">Amount:</label>
+                <label for="amount">Tiền Vay:</label>
                 <input type="number" class="form-control" id="amount" name="amount" required>
             </div>
             <div class="form-group">
-                <label for="annual_interest_hard">Annual Interest Hard (%):</label>
+                <label for="annual_interest_hard">Lãi Khuyến Mãi (%):</label>
                 <input type="number" class="form-control" id="annual_interest_hard" name="annual_interest_hard" step="0.01" required>
             </div>
             <div class="form-group">
-                <label for="term_year_hard">Term Year Hard:</label>
+                <label for="term_year_hard">Thời Hạn Khuyến Mãi (đơn vị năm):</label>
                 <input type="number" class="form-control" id="term_year_hard" name="term_year_hard" required>
             </div>
             <div class="form-group">
-                <label for="annual_interest_dynamic">Annual Interest Dynamic (%):</label>
+                <label for="annual_interest_dynamic">Lãi Suất Thả Nổi (theo thị trường) (%):</label>
                 <input type="number" class="form-control" id="annual_interest_dynamic" name="annual_interest_dynamic" step="0.01" required>
             </div>
             <div class="form-group">
-                <label for="term_year_totals">Term Year Totals:</label>
+                <label for="term_year_totals">Tổng Số Năm Vay:</label>
                 <input type="number" class="form-control" id="term_year_totals" name="term_year_totals" required>
             </div>
             <button type="submit" class="btn btn-primary">Calculate Loan</button>
@@ -40,8 +40,10 @@
         <table class="table table-bordered mt-3">
             <thead>
                 <tr>
-                    <th>Month</th>
-                    <th>Payment Amount</th>
+                    <th>Tháng</th>
+                    <th>Tiền Lãi</th>
+                    <th>Tiền Gốc</th>
+                    <th>Tiền phải trả hàng tháng</th>
                 </tr>
             </thead>
             <tbody id="result"></tbody>
@@ -53,7 +55,7 @@
             event.preventDefault();
             
             const data = {
-                user_id: document.getElementById('user_id').value,
+                <!-- user_id: document.getElementById('user_id').value, -->
                 amount: parseFloat(document.getElementById('amount').value),
                 annual_interest_hard: parseFloat(document.getElementById('annual_interest_hard').value),
                 term_year_hard: parseInt(document.getElementById('term_year_hard').value),
@@ -83,12 +85,18 @@
                 data.payment_permonth.forEach(payment => {
                     const row = document.createElement('tr');
                     const monthCell = document.createElement('td');
+                    const interestCell = document.createElement('td');
+                    const principalCell = document.createElement('td');
                     const amountCell = document.createElement('td');
 
                     monthCell.textContent = payment.month;
-                    amountCell.textContent = payment.money.toFixed(2);
+                    amountCell.textContent = payment.total.toFixed(3);
+                    interestCell.textContent = payment.interest.toFixed(3);
+                    principalCell.textContent = payment.principal.toFixed(3);
 
                     row.appendChild(monthCell);
+                    row.appendChild(interestCell);
+                    row.appendChild(principalCell);
                     row.appendChild(amountCell);
                     result.appendChild(row);
                 });

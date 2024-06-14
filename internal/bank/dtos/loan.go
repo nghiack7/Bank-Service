@@ -25,8 +25,10 @@ type LoanResponse struct {
 }
 
 type Payment struct {
-	Month int     `json:"month"`
-	Money float64 `json:"money"`
+	Month     int     `json:"month"`
+	Total     float64 `json:"total"`
+	Interest  float64 `json:"interest"`
+	Principal float64 `json:"principal"`
 }
 
 func ToEntity[T any, U any](data T, funcTrans func(T) U) U {
@@ -41,15 +43,20 @@ func NewLoanEntity(data *LoanRequest) *entities.Loan {
 		TermYearHard:          data.TermYearHard,
 		AnnualInterestDynamic: data.AnnualInterestDynamic,
 		TermYearTotals:        data.TermYearTotals,
-		PaymentPermonth:       make(map[int]float64),
+		PaymentPermonth:       make(map[int]entities.PaymentMonthInfo),
 	}
 }
 
 func CreateResponse(data *entities.Loan) LoanResponse {
 	resp := LoanResponse{}
 	for k, v := range data.PaymentPermonth {
-		money := Payment{k + 1, v}
-		resp.PaymentPermonth = append(resp.PaymentPermonth, money)
+		info := Payment{
+			Month:     k,
+			Total:     v.PaymentMonth,
+			Interest:  v.Interest,
+			Principal: v.Principal,
+		}
+		resp.PaymentPermonth = append(resp.PaymentPermonth, info)
 	}
 	QuickSort(resp.PaymentPermonth, 0, len(resp.PaymentPermonth)-1)
 	return resp

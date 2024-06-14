@@ -7,7 +7,13 @@ type Loan struct {
 	TermYearHard          int
 	AnnualInterestDynamic float64
 	TermYearTotals        int
-	PaymentPermonth       map[int]float64
+	PaymentPermonth       map[int]PaymentMonthInfo
+}
+
+type PaymentMonthInfo struct {
+	PaymentMonth float64
+	Interest     float64
+	Principal    float64
 }
 
 func (l *Loan) Calculate() {
@@ -21,7 +27,12 @@ func (l *Loan) Calculate() {
 		} else {
 			interest = l.Amount * float64(l.AnnualInterestDynamic/12/100)
 		}
-		l.PaymentPermonth[i] = interest + amountPayPerMonth
+		paymentInfo := PaymentMonthInfo{
+			PaymentMonth: amountPayPerMonth + interest,
+			Interest:     interest,
+			Principal:    amountPayPerMonth,
+		}
+		l.PaymentPermonth[i] = paymentInfo
 		l.Amount -= (amountPayPerMonth)
 	}
 }
