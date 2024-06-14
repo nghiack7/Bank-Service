@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Calculator</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">Loan Calculator</h1>
+        <form id="loan-form" class="mt-4">
+            <div class="form-group">
+                <label for="user_id">User ID:</label>
+                <input type="text" class="form-control" id="user_id" name="user_id" required>
+            </div>
+            <div class="form-group">
+                <label for="amount">Amount:</label>
+                <input type="number" class="form-control" id="amount" name="amount" required>
+            </div>
+            <div class="form-group">
+                <label for="annual_interest_hard">Annual Interest Hard (%):</label>
+                <input type="number" class="form-control" id="annual_interest_hard" name="annual_interest_hard" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="term_year_hard">Term Year Hard:</label>
+                <input type="number" class="form-control" id="term_year_hard" name="term_year_hard" required>
+            </div>
+            <div class="form-group">
+                <label for="annual_interest_dynamic">Annual Interest Dynamic (%):</label>
+                <input type="number" class="form-control" id="annual_interest_dynamic" name="annual_interest_dynamic" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="term_year_totals">Term Year Totals:</label>
+                <input type="number" class="form-control" id="term_year_totals" name="term_year_totals" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Calculate Loan</button>
+        </form>
+        <h2 class="mt-5">Payment Schedule</h2>
+        <table class="table table-bordered mt-3">
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Payment Amount</th>
+                </tr>
+            </thead>
+            <tbody id="result"></tbody>
+        </table>
+    </div>
+
+    <script>
+        document.getElementById('loan-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const data = {
+                user_id: document.getElementById('user_id').value,
+                amount: parseFloat(document.getElementById('amount').value),
+                annual_interest_hard: parseFloat(document.getElementById('annual_interest_hard').value),
+                term_year_hard: parseInt(document.getElementById('term_year_hard').value),
+                annual_interest_dynamic: parseFloat(document.getElementById('annual_interest_dynamic').value),
+                term_year_totals: parseInt(document.getElementById('term_year_totals').value)
+            };
+
+           
+            fetch('/api/v1/loan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const result = document.getElementById('result');
+                result.innerHTML = ''; // Clear previous content
+
+                // Iterate through each payment object and create table rows
+                data.payment_permonth.forEach(payment => {
+                    const row = document.createElement('tr');
+                    const monthCell = document.createElement('td');
+                    const amountCell = document.createElement('td');
+
+                    monthCell.textContent = payment.month;
+                    amountCell.textContent = payment.money.toFixed(2);
+
+                    row.appendChild(monthCell);
+                    row.appendChild(amountCell);
+                    result.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>
