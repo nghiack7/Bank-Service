@@ -3,27 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tính Lãi Suất </title>
+    <title>Tính Lãi Suất</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
     <div class="container">
+        <div class="language-switcher">
+            <button id="en-btn" class="btn btn-primary">English</button>
+            <button id="vi-btn" class="btn btn-secondary">Tiếng Việt</button>
+        </div>
         <h1 class="mt-5">Tính Lãi Suất Vay Dư Nợ Giảm Dần</h1>
         <form id="loan-form" class="mt-4">
-            <!-- <div class="form-group">
-                <label for="user_id">User ID:</label>
-                <input type="text" class="form-control" id="user_id" name="user_id" required>
-            </div> -->
             <div class="form-group">
                 <label for="amount">Tiền Vay:</label>
                 <input type="number" class="form-control" id="amount" name="amount" required>
             </div>
             <div class="form-group">
-                <label for="annual_interest_hard">Lãi Khuyến Mãi (%):</label>
+                <label for="annual_interest_hard">Lãi Cố Định (%):</label>
                 <input type="number" class="form-control" id="annual_interest_hard" name="annual_interest_hard" step="0.01" required>
             </div>
             <div class="form-group">
-                <label for="term_year_hard">Thời Hạn Khuyến Mãi (đơn vị năm):</label>
+                <label for="term_year_hard">Thời Hạn Lãi Cố Định (đơn vị năm):</label>
                 <input type="number" class="form-control" id="term_year_hard" name="term_year_hard" required>
             </div>
             <div class="form-group">
@@ -34,9 +34,11 @@
                 <label for="term_year_totals">Tổng Số Năm Vay:</label>
                 <input type="number" class="form-control" id="term_year_totals" name="term_year_totals" required>
             </div>
-            <button type="submit" class="btn btn-primary">Calculate Loan</button>
+            <button type="submit" class="btn btn-primary">Tính Lãi Vay</button>
         </form>
-        <h2 class="mt-5">Payment Schedule</h2>
+               <canvas id="paymentChart" class="mt-5"></canvas>
+
+        <h2 class="mt-5">Lịch Chi Trả</h2>
         <table class="table table-bordered mt-3">
             <thead>
                 <tr>
@@ -44,18 +46,27 @@
                     <th>Tiền Lãi</th>
                     <th>Tiền Gốc</th>
                     <th>Tiền phải trả hàng tháng</th>
+                    <th>Dư Nợ Còn Lại</th>
                 </tr>
             </thead>
             <tbody id="result"></tbody>
         </table>
-    </div>
+     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        document.getElementById('en-btn').addEventListener('click', function() {
+            window.location.href = '/?lang=en';
+        });
+
+        document.getElementById('vi-btn').addEventListener('click', function() {
+            window.location.href = '/?lang=vi';
+        });
+
         document.getElementById('loan-form').addEventListener('submit', function(event) {
             event.preventDefault();
             
             const data = {
-                <!-- user_id: document.getElementById('user_id').value, -->
                 amount: parseFloat(document.getElementById('amount').value),
                 annual_interest_hard: parseFloat(document.getElementById('annual_interest_hard').value),
                 term_year_hard: parseInt(document.getElementById('term_year_hard').value),
@@ -63,7 +74,6 @@
                 term_year_totals: parseInt(document.getElementById('term_year_totals').value)
             };
 
-           
             fetch('/api/v1/loan', {
                 method: 'POST',
                 headers: {
@@ -81,6 +91,10 @@
                 const result = document.getElementById('result');
                 result.innerHTML = ''; // Clear previous content
 
+                // Data for the chart
+                const months = [];
+                const monthlyPayments = [];
+
                 // Iterate through each payment object and create table rows
                 data.payment_permonth.forEach(payment => {
                     const row = document.createElement('tr');
@@ -88,17 +102,50 @@
                     const interestCell = document.createElement('td');
                     const principalCell = document.createElement('td');
                     const amountCell = document.createElement('td');
+                    const debtCell = document.createElement('td');
 
                     monthCell.textContent = payment.month;
-                    amountCell.textContent = payment.total.toFixed(3);
-                    interestCell.textContent = payment.interest.toFixed(3);
-                    principalCell.textContent = payment.principal.toFixed(3);
+                    amountCell.textContent = payment.total.toFixed(2);
+                    interestCell.textContent = payment.interest.toFixed(2);
+                    principalCell.textContent = payment.principal.toFixed(2);
+                    debtCell.textContent = payment.debt.toFixed(2);
 
                     row.appendChild(monthCell);
                     row.appendChild(interestCell);
                     row.appendChild(principalCell);
                     row.appendChild(amountCell);
+                    row.appendChild(debtCell);
                     result.appendChild(row);
+
+                    // Add data to the chart
+                    months.push(payment.month);
+                    monthlyPayments.push(payment.total);
+                });
+
+                // Create chart
+                const ctx = document.getElementById('paymentChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: months,
+                        datasets: [{
+                            label: 'Monthly Payment',
+                            data: monthlyPayments,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                beginAtZero: true
+                            },
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
                 });
             })
             .catch(error => {

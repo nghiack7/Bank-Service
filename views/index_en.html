@@ -8,6 +8,10 @@
 </head>
 <body>
     <div class="container">
+        <div class="language-switcher">
+            <button id="en-btn" class="btn btn-primary">English</button>
+            <button id="vi-btn" class="btn btn-secondary">Tiếng Việt</button>
+        </div>
         <h1 class="mt-5">Loan Calculator</h1>
         <form id="loan-form" class="mt-4">
             <!-- <div class="form-group">
@@ -36,6 +40,8 @@
             </div>
             <button type="submit" class="btn btn-primary">Calculate Loan</button>
         </form>
+               <canvas id="paymentChart" class="mt-5"></canvas>
+
         <h2 class="mt-5">Payment Schedule</h2>
         <table class="table table-bordered mt-3">
             <thead>
@@ -44,13 +50,21 @@
                     <th>Interest</th>
                     <th>Principal</th>
                     <th>Payment Amount</th>
+                    <th>Debt</th>
                 </tr>
             </thead>
             <tbody id="result"></tbody>
         </table>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+         document.getElementById('en-btn').addEventListener('click', function() {
+            window.location.href = '/?lang=en';
+        });
+
+        document.getElementById('vi-btn').addEventListener('click', function() {
+            window.location.href = '/?lang=vi';
+        });
         document.getElementById('loan-form').addEventListener('submit', function(event) {
             event.preventDefault();
             
@@ -80,7 +94,9 @@
             .then(data => {
                 const result = document.getElementById('result');
                 result.innerHTML = ''; // Clear previous content
-
+   // Data for the chart
+                const months = [];
+                const monthlyPayments = [];
                 // Iterate through each payment object and create table rows
                 data.payment_permonth.forEach(payment => {
                     const row = document.createElement('tr');
@@ -88,17 +104,50 @@
                     const interestCell = document.createElement('td');
                     const principalCell = document.createElement('td');
                     const amountCell = document.createElement('td');
+                    const debtCell = document.createElement('td');
 
                     monthCell.textContent = payment.month;
                     interestCell.textContent = payment.interest.toFixed(3);
                     principalCell.textContent = payment.principal.toFixed(3);
                     amountCell.textContent = payment.total.toFixed(3);
+                    debtCell.textContent = payment.debt.toFixed(3);
 
                     row.appendChild(monthCell);
                     row.appendChild(interestCell);
                     row.appendChild(principalCell);
                     row.appendChild(amountCell);
+                    row.appendChild(debtCell);
                     result.appendChild(row);
+
+
+                    // Add data to the chart
+                    months.push(payment.month);
+                    monthlyPayments.push(payment.total);
+                });
+                 // Create chart
+                const ctx = document.getElementById('paymentChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: months,
+                        datasets: [{
+                            label: 'Monthly Payment',
+                            data: monthlyPayments,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                beginAtZero: true
+                            },
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
                 });
             })
             .catch(error => {

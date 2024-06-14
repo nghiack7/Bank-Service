@@ -14,6 +14,7 @@ type PaymentMonthInfo struct {
 	PaymentMonth float64
 	Interest     float64
 	Principal    float64
+	Debt         float64
 }
 
 func (l *Loan) Calculate() {
@@ -27,12 +28,14 @@ func (l *Loan) Calculate() {
 		} else {
 			interest = l.Amount * float64(l.AnnualInterestDynamic/12/100)
 		}
+		l.Amount -= (amountPayPerMonth)
+
 		paymentInfo := PaymentMonthInfo{
 			PaymentMonth: amountPayPerMonth + interest,
 			Interest:     interest,
 			Principal:    amountPayPerMonth,
+			Debt:         l.Amount,
 		}
 		l.PaymentPermonth[i] = paymentInfo
-		l.Amount -= (amountPayPerMonth)
 	}
 }

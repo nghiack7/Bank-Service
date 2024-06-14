@@ -29,6 +29,7 @@ type Payment struct {
 	Total     float64 `json:"total"`
 	Interest  float64 `json:"interest"`
 	Principal float64 `json:"principal"`
+	Debt      float64 `json:"debt"`
 }
 
 func ToEntity[T any, U any](data T, funcTrans func(T) U) U {
@@ -55,6 +56,7 @@ func CreateResponse(data *entities.Loan) LoanResponse {
 			Total:     v.PaymentMonth,
 			Interest:  v.Interest,
 			Principal: v.Principal,
+			Debt:      v.Debt,
 		}
 		resp.PaymentPermonth = append(resp.PaymentPermonth, info)
 	}
